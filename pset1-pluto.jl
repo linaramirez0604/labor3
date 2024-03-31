@@ -23,7 +23,7 @@ end
 # ╔═╡ c407db2e-18df-434b-9d9a-a88a2762815a
 md"""
 
-## ECON 34430: Topics in Labor Markets
+## ECON 34430: Topics in Labor Markets, Earnings and Employment
 
 # Problem Set 1
 
@@ -32,37 +32,103 @@ md"""
 **April 1, 2024**
 """
 
-# ╔═╡ c9dba5a6-afae-48a9-bec1-3b45ed95c59e
+# ╔═╡ f9f6acad-c46a-422e-ac37-c0aa431a18e4
 md"""
-The utility function is modified such that 
-    
+**Finite Horizon Formulation**
+
+When the budget constraint and initial condition are the only constraints, the finite horizon problem is 
+
 ```math
-u(c,h) = (c^\sigma + (1-h)^\sigma)^{\frac{1}{\sigma}}
+\max_{c^t,h^t,b^t} \sum_{t = 0}^T \beta^t u(c_t,h_t) 
+```
+```math
+\text{s.t. } c_t + b_{t+1} = w_th_t + (1+r)b_{t} \hspace{.4cm} \forall t
 ```
 
+where $b_0$ is given, and $c^t, \ h^t, \ b^t$ are vectors containing the history of decisions. The Lagrangian is
+
+```math
+\mathcal{L} = \sum_{t = 0}^T \beta^t u(c_t,h_t) - \sum_{t = 0}^T \beta^t \lambda_t ( c_t + b_{t+1} - w_th_t - (1+r)b_{t} )
+```
+
+The FOCs give 
+
+```math
+\begin{align}
+u_c(c_t,h_t) - \lambda_t &= 0 \hspace{0.5cm} [c_t] \\
+u_h(c_t,h_t) + \lambda_t w_t &= 0 \hspace{0.5cm} [h_t] \\
+\beta^t \lambda_t (1+r) - \beta^{t-1} \lambda_{t-1} &= 0 \hspace{0.5cm} [b_t] \\
+\end{align}
+```
+
+which is our typical Frisch problem in the infinite horizon. Rearranging the FOC w.r.t. $b_t$ gives 
+
+```math
+\lambda_{t-1} = \lambda_t 
+```
+
+This yields a lifetime budget constraint, which is
+
+```math
+\sum_{t = 0}^T \beta^t c_t + \beta^{T+1} b_{T+1} = \sum_{t = 0}^T \beta^t w_th_t + (1+r) b_0 
+```
+
+This differs from a lifetime budget constraint in infinite horizon because we have the additional term $\beta^{T+1} b_{T+1}$. Perhaps we need a terminal condition (e.g. $b_{T+1} = 0$) to pin down the unique streams of consumption, labor supply, and asset decisions which solve the problem?
+
+In this context, the marginal value of wealth is
+
+```math
+\lambda = u_c(c_t,h_t) = \frac{u_h(c_t,h_t)}{w_t} \hspace{0.5cm} \forall t
+```
+
+Using the original utility function from lecture, this implies
+
+```math
+\lambda = \alpha c_t^{\alpha - 1}(1-h_t)^{\gamma} = \frac{- \gamma c_t^{\alpha}(1-h_t)^{\gamma - 1}}{w_t} \hspace{0.5cm} \forall t
+```
+
+"""
+
+# ╔═╡ ab403af3-d43d-481e-9cc2-2134e4e5dd5b
+md"""
+**Solve and Plot**
+
+For this part, we use the code shared from lecture.
+"""
+
+# ╔═╡ c9dba5a6-afae-48a9-bec1-3b45ed95c59e
+md"""
+Recall the utility function
+
+```math
+u(c,h) = c^\alpha (1-h)^\gamma
+```
+
+We may adjust the parameters below.
 """
 
 # ╔═╡ 93f134fd-e7e9-4aaf-a5e1-1111aac196ef
 md"""
 - ``\alpha``: $(@bind alpha Slider(LinRange(0,1,50), default=0.7)) 
 - ``\gamma``: $(@bind gamma Slider(LinRange(0,1,50), default=0.4 )) 
-- ``\sigma``: $(@bind sigma Slider(LinRange(0,1,50), default=0.5 ))
+- ``R_0``: $(@bind R0 Slider(LinRange(0,1,50), default=0.6))
+- ``w_0``: $(@bind w0 Slider(LinRange(0,3,50), default=0.8))
 """
 
 # ╔═╡ b21bb29f-170f-4668-ab69-63ca51bf3612
 begin
-	# rho = alpha+gamma -1
-	# kappa = (alpha * (alpha/gamma)^(alpha-1) ) ^(-1/rho)	
-	c_isoquant(u,h) = (u^(sigma)  - (1-h)^(sigma))^(1/sigma)
+	rho = alpha+gamma -1
+	kappa = (alpha * (alpha/gamma)^(alpha-1) ) ^(-1/rho)	
+	c_isoquant(u,h) = u^(1/alpha)  * (1-h)^( -gamma/alpha)
 	
 	hs = LinRange(0,1,100)
-	# plot 2 isoquant of the utlity
-	u(c,h) = (c^sigma + (1-h)^sigma)^(1/sigma)
+	# plot 2 iso quant of the utlity
+	u(c,h) = c^alpha * (1-h)^gamma
 	
 	# we solve for solution at 2 different R
-	# h_m(w,R) = (alpha - gamma * R/w) / (alpha + gamma )
-	# c_m(w,R) = h_m(w,R)*w + R
-	u_m(w,R) = (c_m(w,R)^sigma + (1-h_m(w,R))^sigma)^(1/sigma)
+	h_m(w,R) = (alpha - gamma * R/w) / (alpha + gamma )
+	c_m(w,R) = h_m(w,R)*w + R
+	u_m(w,R) = c_m(w,R)^alpha * (1-h_m(w,R))^(gamma)
 	
 	# Hicks demands
 	c_h(w,u) = u^(1/alpha) * ( alpha/gamma * u^(-1/alpha) *w)^(gamma/(alpha+gamma))
@@ -76,146 +142,25 @@ begin
 	c_f(w,lambda) = kappa * alpha / gamma * w ^( gamma/(alpha+gamma-1) ) * lambda^(1/(alpha+gamma-1))
 end
 
-# ╔═╡ b0f157be-7f47-4c13-a4bf-7c3ba9b3dac2
-md"""
-- ``R_0``: $(@bind R0 Slider(LinRange(0,1,50), default=0.6))
-- ``w_0``: $(@bind w0 Slider(LinRange(0,3,50), default=0.8))
-- ``w_1``: $(@bind w1 Slider(LinRange(0,3,50), default=2.8 ))
-"""
-
-# ╔═╡ 64c9a64f-ca5b-4ff2-9552-46788adb0171
-# ╠═╡ disabled = true
-#=╠═╡
-
-  ╠═╡ =#
-
-# ╔═╡ 8bccde35-99c6-49ee-ae0b-a0faedc10b2f
-begin
-	u0 = u_m(w0,R0)
-	c0 = c_m(w0,R0)
-	h0 = h_m(w0,R0)
-	lambda0 = lambda_m(w0,R0)
-	
-	plot(hs, c_isoquant.( u0, hs) ,label="wage 1",xflip = true, xlab="hours", 
-	        ylab="consumption",legend=:topright,size=1.2.*(350,250),
-	        xlim= (0.2,0.9), ylim = (0,4), linewidth=3, color="navy")
-	plot!(hs, w0 .* hs .+ R0,color="navy" ,label=nothing)
-	plot!([h0],[c0],seriestype=:scatter,color="navy",label=nothing)
-		
-	u1 = u_m(w1,R0)
-	c1 = c_m(w1,R0)
-	h1 = h_m(w1,R0)
-	
-	plot!(hs, c_isoquant.( u1, hs) ,label="wage 2",xflip = true, linewidth=3,color="green")
-	plot!(hs, w1 .* hs .+ R0, label=nothing,color="green" )
-	plot!([h1],[c1],seriestype=:scatter,color="green",label=nothing )
-
-	# compensated choices
-	h2 = h_h(w1,u0)
-	c2 = c_h(w1,u0)
-	R2 = c2 - h2*w1 
-	plot!(hs, w1 .* hs .+ R2, label="budget",linestyle=:dash,color="navy" )	
-	plot!([h2],[c2], seriestype=:scatter,color="red" ,label="compensated")
-	
-end
-
-# ╔═╡ e823f9b3-4370-4f50-b816-b943c0860d7f
-md"""
-In this new example, we want to plot the Frisch demands and see how they vary as we change the wage and the multiplier
-
-- ``R_0``: $(@bind R0_f Slider(LinRange(0,1,50), default=0.6))
-- ``w_0``: $(@bind w0_f Slider(LinRange(0,3,50), default=0.8))
-- ``w_1``: $(@bind w1_f Slider(LinRange(0,3,50), default=2.8 ))
-"""
-
-
-
-# ╔═╡ 49e10682-c3f3-4351-b598-cddecca93ef3
-begin
-	u0_f = u_m(w0_f,R0_f)
-	c0_f = c_m(w0_f,R0_f)
-	h0_f = h_m(w0_f,R0_f)
-	lambda0_f = lambda_m(w0_f,R0_f)
-	
-	plot(hs, c_isoquant.( u0_f, hs) ,label="wage 1",xflip = true, xlab="hours", 
-	        ylab="consumption",legend=:topright,size=1.2.*(350,250),
-	        xlim= (0.2,0.9), ylim = (0,4), linewidth=3, color="navy")
-	plot!(hs, w0_f .* hs .+ R0_f,color="navy" ,label=nothing)
-	plot!([h0_f],[c0_f],seriestype=:scatter,color="navy",label=nothing)
-		
-	u1_f = u_m(w1_f,R0_f)
-	c1_f = c_m(w1_f,R0_f)
-	h1_f = h_m(w1_f,R0_f)
-	
-	plot!(hs, c_isoquant.( u1_f, hs) ,label="wage 2",xflip = true, linewidth=3,color="green")
-	plot!(hs, w1_f .* hs .+ R0_f, label=nothing,color="green" )
-	plot!([h1_f],[c1_f],seriestype=:scatter,color="green",label=nothing )
-
-	# compensated choices
-	h2_f = h_f(w1_f,lambda0_f)
-	c2_f = c_f(w1_f,lambda0_f)
-	# R2_f = c2_f - h2*w1_f 
-	# plot!(hs, w1_f .* hs .+ R2_f, label="budget",linestyle=:dash,color="navy" )
-	ws_f = LinRange(0.5*w0_f,1.5*w0_f,20)
-	plot!( h_f.(ws_f,lambda0_f), c_f.(ws_f,lambda0_f) ,label=nothing, color="red")
-	plot!([h2_f],[c2_f], seriestype=:scatter,color="red" ,label="Frisch")
-	
-end
-
-# ╔═╡ 91c3ead0-5938-4f78-9956-f6e8170e4b68
-md"""
-The red curve is the curve that keeps marginal utility of consumption fixed since 
-
-```math
-\lambda = u_c(c,h)
-```
-
-in our case this is given by 
-
-```math
-c = \left( \frac{\lambda}{\alpha}  (1-h)^{-\gamma} \right)^{\frac{1}{\alpha-1}}
-```
-
-"""
-
-
-
-# ╔═╡ 12d0b72e-4319-4505-a71c-2d5d1706a94e
-frisch_iso(h,lambda) = (lambda/alpha * (1-h)^(-gamma))^(1/(alpha-1))
-
-# ╔═╡ 83affd6f-864c-43ea-9cbe-4e8669ea9e4c
-md"""
-# Dynamic cases
-
-We turn to evaluating the effect of changing a stream of wages ```w^t```. We continue to operate under the assumption of perfect foresight, the fact that ```beta (1+r) = ``` and using our KPR utility.
-"""
-
 # ╔═╡ 87223dc4-4d2e-4945-b8d3-1d72627b3d5b
 begin
 	beta = 0.9
-	T = 10_000
+	T = 40
 	t_t = 0:(T-1)
 
-	lambda_t(w_t,t_t) = (R0/( beta* (1-beta)) + sum(beta.^t_t .* w_t) )^rho / sum(  kappa * (1+alpha/gamma) * beta.^t_t .* w_t.^(gamma/rho))^(rho)
+	lambda_t(w_t,t_t) = (R0/( beta * (1-beta)) + sum(beta.^t_t .* w_t) )^rho / sum(  kappa * (1+alpha/gamma) * beta.^t_t .* w_t.^(gamma/rho))^(rho)
 
 	w_t = w0 * ones(T) # fixed wage
 	lambda_d = lambda_t(w_t,t_t)
 end
-
-# ╔═╡ cf83f41c-a55c-412b-ab27-0e92bb61ad1e
-md"""
-In this case, we picked an initial asset that equates to ``R_0``. We get a value for our multiplier of ``\lambda``=$(round(lambda_d,digits=2)) wihch we can compare to the multiplier in static case of $(round(lambda0,digits=2)). We see that they are identical. This was expected but confirms our expression for our dynamic ``\lambda``.
-"""
-
 
 # ╔═╡ b8554c2e-f9ac-42df-9c30-6fb53d74d41d
 begin
 	Ts = 4*10
 	ts_t = 0:(Ts-1)
 	
-	# ws_t = 0.5 .+ 0.002 * 30^2 .- 0.002 * (ts_t .- 30).^2
-	ws_t = 0.5 .+ 0.002 * 40^2 .- 0.002 * (ts_t .- 40).^2
-	# ws_t = ones(Ts)
+	ws_t = 0.5 .+ 0.002 * 30^2 .- 0.002 * (ts_t .- 30).^2
+	# ws_t = 0.5 .+ 0.002 * 40^2 .- 0.002 * (ts_t .- 40).^2
 	lambda_d1 = lambda_t(ws_t,ts_t)
 
 	ht_1 = h_f.(ws_t,lambda_d1)
@@ -231,85 +176,11 @@ begin
 	plot!(p1,ts_t, ct_1, label="consumption")
 	plot!(p1,ts_t, ht_1, label="hours")
 
-	ws_t2 = copy(ws_t)
-	ws_t2[30] += 0.4 # transitory change
-	# ws_t2 .+= 1.0 # permanent change
-	
-	lambda_d2 = lambda_t(ws_t2,ts_t)
-
-	ht_2 = h_f.(ws_t2,lambda_d2)
-	ct_2 = c_f.(ws_t2,lambda_d2)
-
-	plot!(p1,ts_t, ht_2, label="hours")
-	p2 = plot(ts_t, ht_2 .- ht_1, label="change in hours", legend=:bottomleft)
-	
-	plot(p1,p2)
+	plot(p1)
 end
 
 # ╔═╡ 90b7cd4e-3b7a-48b2-a62b-a6070bd41ae8
 plot(ts_t, bt_1, label= "asset over time")
-
-# ╔═╡ bd3ec74e-6cff-4189-bd74-af4fdd0bacb0
-begin	
-	w_t3 = 1.5 .+ 0.3 .* (mod.(ts_t,2) .== 0)
-	lambda_d3 = lambda_t(w_t3,ts_t)
-
-	i1 = (1:Ts)[w_t3 .== 1.5][1]
-	ht_3 = h_f(w_t3[i1],lambda_d3)
-	ct_3 = c_f(w_t3[i1],lambda_d3)
-	ut_3 = u(ct_3,ht_3)
-
-	i2 = (1:Ts)[w_t3 .== 1.8][1]
-	ht_4 = h_f(w_t3[i2],lambda_d3)
-	ct_4 = c_f(w_t3[i2],lambda_d3)
-	ut_4 = u(ct_4,ht_4)
-	
-	plot(hs, c_isoquant.( ut_3, hs) ,label="w low 1",xflip = true, xlab="hours", 
-	        ylab="consumption",legend=:outerright,size=1.2.*(450,250),
-	        xlim= (0.2,0.9), ylim = (0,4), linewidth=3, color="navy")
-	# plot!(hs, w0_f .* hs .+ R0_f,color="navy" ,label=nothing)	
-	plot!([ht_3],[ct_3],seriestype=:scatter,color="navy",label=nothing)
-
-	plot!(hs, c_isoquant.( ut_4, hs) ,label="w high 1",xflip = true, xlab="hours", 
-	        ylab="consumption",
-	        xlim= (0.2,0.9), ylim = (0,4), linewidth=3, color="blue")
-	plot!([ht_4],[ct_4],seriestype=:scatter,color="blue",label=nothing)
-
-	plot!(hs, frisch_iso.(hs, lambda_d3), color="black",
-		linestyle=:dash, label = "Frish isoquant")
-	
-	w_t3b = 1.5 .+ 0.3 .* (mod.(ts_t,10) .== 0)
-	lambda_d3b = lambda_t(w_t3b,ts_t)
-
-	i1b = (1:Ts)[w_t3b .== 1.5][1]
-	ht_3b = h_f(w_t3b[i1b],lambda_d3b)
-	ct_3b = c_f(w_t3b[i1b],lambda_d3b)
-	ut_3b = u(ct_3b,ht_3b)
-
-	i2b = (1:Ts)[w_t3b .== 1.8][1]
-	ht_4b = h_f(w_t3b[i2b],lambda_d3b)
-	ct_4b = c_f(w_t3b[i2b],lambda_d3b)
-	ut_4b = u(ct_4b,ht_4b)
-	
-	plot!(hs, c_isoquant.( ut_3b, hs) ,label="w low 2",xflip = true, xlab="hours", 
-	        ylab="consumption",
-	        xlim= (0.2,0.9), ylim = (0,4), linewidth=3, color="red")
-	# plot!(hs, w0_f .* hs .+ R0_f,color="navy" ,label=nothing)	
-	plot!([ht_3b],[ct_3b],seriestype=:scatter,color="red",label=nothing)
-
-	plot!(hs, c_isoquant.( ut_4b, hs) ,label="w high 2",xflip = true, xlab="hours", 
-	        ylab="consumption",
-	        xlim= (0.2,0.9), ylim = (0,4), linewidth=3, color="orange")
-	plot!([ht_4b],[ct_4b],seriestype=:scatter,color="orange",label=nothing)
-
-	plot!(hs, frisch_iso.(hs, lambda_d3b),color="black",
-		linestyle=:dash, label = "Frish isoquant")
-
-	
-end
-
-# ╔═╡ f9f6acad-c46a-422e-ac37-c0aa431a18e4
-
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -837,9 +708,9 @@ version = "1.4.2"
 
 [[deps.OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "60e3045590bd104a16fefb12836c00c0ef8c7f8c"
+git-tree-sha1 = "3da7367955dcc5c54c1ba4d402ccdc09a1a3e046"
 uuid = "458c3c95-2e84-50aa-8efc-19380b2a3a95"
-version = "3.0.13+0"
+version = "3.0.13+1"
 
 [[deps.Opus_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1374,23 +1245,14 @@ version = "1.4.1+1"
 
 # ╔═╡ Cell order:
 # ╟─c407db2e-18df-434b-9d9a-a88a2762815a
-# ╠═c9dba5a6-afae-48a9-bec1-3b45ed95c59e
-# ╠═6dae45e0-e33a-11ee-334e-415b48338464
-# ╠═93f134fd-e7e9-4aaf-a5e1-1111aac196ef
-# ╠═b21bb29f-170f-4668-ab69-63ca51bf3612
-# ╠═b0f157be-7f47-4c13-a4bf-7c3ba9b3dac2
-# ╠═64c9a64f-ca5b-4ff2-9552-46788adb0171
-# ╠═8bccde35-99c6-49ee-ae0b-a0faedc10b2f
-# ╠═e823f9b3-4370-4f50-b816-b943c0860d7f
-# ╠═49e10682-c3f3-4351-b598-cddecca93ef3
-# ╠═91c3ead0-5938-4f78-9956-f6e8170e4b68
-# ╠═12d0b72e-4319-4505-a71c-2d5d1706a94e
-# ╠═83affd6f-864c-43ea-9cbe-4e8669ea9e4c
-# ╠═87223dc4-4d2e-4945-b8d3-1d72627b3d5b
-# ╠═cf83f41c-a55c-412b-ab27-0e92bb61ad1e
-# ╠═b8554c2e-f9ac-42df-9c30-6fb53d74d41d
+# ╟─6dae45e0-e33a-11ee-334e-415b48338464
+# ╟─f9f6acad-c46a-422e-ac37-c0aa431a18e4
+# ╟─ab403af3-d43d-481e-9cc2-2134e4e5dd5b
+# ╟─c9dba5a6-afae-48a9-bec1-3b45ed95c59e
+# ╟─93f134fd-e7e9-4aaf-a5e1-1111aac196ef
+# ╟─b21bb29f-170f-4668-ab69-63ca51bf3612
+# ╟─87223dc4-4d2e-4945-b8d3-1d72627b3d5b
+# ╟─b8554c2e-f9ac-42df-9c30-6fb53d74d41d
 # ╠═90b7cd4e-3b7a-48b2-a62b-a6070bd41ae8
-# ╠═bd3ec74e-6cff-4189-bd74-af4fdd0bacb0
-# ╠═f9f6acad-c46a-422e-ac37-c0aa431a18e4
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
