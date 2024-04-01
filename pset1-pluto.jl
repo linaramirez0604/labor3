@@ -77,7 +77,7 @@ Combining this expression with the first FOC gives
 \end{gather*}
 ```
 
-which implies that we cannot derive Frisch elasticities from this utility function (CES) since hours do not appear. 
+which implies that we cannot derive Frisch elasticities from this utility function (CES). 
 """
 
 # ╔═╡ 5a2c58bd-9a60-464a-bd2e-313ea4164f76
@@ -1344,7 +1344,7 @@ version = "1.4.1+1"
 # ╔═╡ Cell order:
 # ╟─c407db2e-18df-434b-9d9a-a88a2762815a
 # ╟─6dae45e0-e33a-11ee-334e-415b48338464
-# ╟─0339019a-9b03-48e4-90dc-ebd963e507a2
+# ╠═0339019a-9b03-48e4-90dc-ebd963e507a2
 # ╟─5a2c58bd-9a60-464a-bd2e-313ea4164f76
 # ╟─f9f6acad-c46a-422e-ac37-c0aa431a18e4
 # ╟─ab403af3-d43d-481e-9cc2-2134e4e5dd5b
