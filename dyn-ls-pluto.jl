@@ -42,6 +42,7 @@ begin
 	rho = alpha+gamma -1
 	kappa = (alpha * (alpha/gamma)^(alpha-1) ) ^(-1/rho)	
 	c_isoquant(u,h) = u^(1/alpha)  * (1-h)^( -gamma/alpha)
+	#the Isoquant is just getting c in terms of u(c,h) and h. 
 	
 	hs = LinRange(0,1,100)
 	# plot 2 iso quant of the utlity
