@@ -77,7 +77,7 @@ Combining this expression with the first FOC gives
 \end{gather*}
 ```
 
-which implies that we cannot derive Frisch elasticities from this utility function (CES). 
+which implies that we cannot derive Frisch elasticities from this utility function (CES) because hours drop out. 
 """
 
 # ╔═╡ 5a2c58bd-9a60-464a-bd2e-313ea4164f76
@@ -135,10 +135,7 @@ Which implies that we need
 ```math 
 	\gamma + \alpha < 1 
 ```
-so we get that $\gamma<1$ too. 
-
-To summarize, we require $0 < \alpha < 1$, $0 < \gamma < 1$, and $\gamma + \alpha < 1$.
-
+so we get that $\gamma<1$ too. To summarize, we require $0 < \alpha < 1$, $0 < \gamma < 1$, and $\gamma + \alpha < 1$.
 """ 
 
 # ╔═╡ f9f6acad-c46a-422e-ac37-c0aa431a18e4
@@ -250,7 +247,7 @@ end
 
 # ╔═╡ 88c9dd76-022a-404f-a7af-fa7421fb9fe2
 md"""
-With the parameters fixed within the constraints, we obtain a plot where hours are increasing with wages. Since the agent in forward-looking, assets are depleted in the beginning periods when wages are relatively lower. The agent again works less and consumes her asset during the final periods, however the asset does not reach 0. We are unsure how to accomodate this without setting an explicit constraint.
+With the parameters fixed within the constraints, we obtain a plot where hours are increasing with wages. Since the agent is forward-looking, assets are depleted in the beginning periods when wages are relatively lower. The agent again works less and consumes her asset during the final periods, however the asset does not reach 0. We are unsure how to accomodate this without setting an explicit constraint.
 """
 
 # ╔═╡ b8554c2e-f9ac-42df-9c30-6fb53d74d41d
@@ -1344,16 +1341,16 @@ version = "1.4.1+1"
 # ╔═╡ Cell order:
 # ╟─c407db2e-18df-434b-9d9a-a88a2762815a
 # ╟─6dae45e0-e33a-11ee-334e-415b48338464
-# ╠═0339019a-9b03-48e4-90dc-ebd963e507a2
+# ╟─0339019a-9b03-48e4-90dc-ebd963e507a2
 # ╟─5a2c58bd-9a60-464a-bd2e-313ea4164f76
 # ╟─f9f6acad-c46a-422e-ac37-c0aa431a18e4
 # ╟─ab403af3-d43d-481e-9cc2-2134e4e5dd5b
 # ╟─c9dba5a6-afae-48a9-bec1-3b45ed95c59e
-# ╟─93f134fd-e7e9-4aaf-a5e1-1111aac196ef
-# ╟─b21bb29f-170f-4668-ab69-63ca51bf3612
-# ╟─87223dc4-4d2e-4945-b8d3-1d72627b3d5b
+# ╠═93f134fd-e7e9-4aaf-a5e1-1111aac196ef
+# ╠═b21bb29f-170f-4668-ab69-63ca51bf3612
+# ╠═87223dc4-4d2e-4945-b8d3-1d72627b3d5b
 # ╟─88c9dd76-022a-404f-a7af-fa7421fb9fe2
-# ╟─b8554c2e-f9ac-42df-9c30-6fb53d74d41d
-# ╟─90b7cd4e-3b7a-48b2-a62b-a6070bd41ae8
+# ╠═b8554c2e-f9ac-42df-9c30-6fb53d74d41d
+# ╠═90b7cd4e-3b7a-48b2-a62b-a6070bd41ae8
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
