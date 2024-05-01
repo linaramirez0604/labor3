@@ -93,42 +93,44 @@ expectation <- function(N, nk, pk, Y1, Y2, Y3, A, S) {
         lnorm3 <- lognormpdf(Y3[i], A[3,], S[3,])
         
         # Calculate log of the likelihood for that latent variable type (also the numerator of the posterior)
-        lall <- lomega + lnorm2 + lnorm1 +lnorm3
+        lall <- lomega + lnorm2 + lnorm1 + lnorm3
         lpm[i,] <- lall
 
         # Add to the likelihood
         lik <- lik + logsumexp(lall)
-    }   
 
-    # Loop over each latent variable type
-    for (i in 1:N) {
         # Calculate the posterior
-        omega[i,] <- exp(lpm[i,] - logsumexp(lpm))
-    }
+        omega[i,] <- exp(lall - logsumexp(lall))
+    }   
 
     return(list(omega=omega, lpm=lpm, lik=lik))
 }
 
 # Maximization function
 maximization <- function(N, nk, omega, Y1, Y2, Y3, A, S) {
-    DY1 <- as.matrix(kronecker(Y1 ,rep(1,nk)))
-    DY2 <- as.matrix(kronecker(Y2 ,rep(1,nk)))
-    DY3 <- as.matrix(kronecker(Y3 ,rep(1,nk)))
-    Dkj1 <- as.matrix.csr(kronecker(rep(1,N),diag(nk)))
-    Dkj2 <- as.matrix.csr(kronecker(rep(1,N),diag(nk)))  
-    Dkj3 <- as.matrix.csr(kronecker(rep(1,N),diag(nk))) 
+    Y <- as.matrix(c(Y1, Y2, Y3))
+    DY <- as.matrix(kronecker(Y ,rep(1,nk)))
+    d <- as.matrix(kronecker(rep(1, N), diag(nk)))
+    Dkj <- as.matrix(kronecker(diag(3), d))
 
-    rw <- c(t(omega))
-    fit <- slm.wfit(Dkj1, cbind(DY1, DY2, DY3), rw)
+    rw <- as.matrix(c(omega, omega, omega))
+    fit <- lm(DY ~ Dkj - 1, weights = rw)
     A <- coef(fit)
-    fit_v <- slm.wfit(Dkj1, resid(fit)^2/rw, rw)
+    A <- matrix(A, nrow = 3, ncol = nk)
+
+    resids <- DY - predict(fit)
+    resids_scale <- resids^2 / rw
+
+    fit_v <- lm(resids_scale ~ Dkj - 1, weights = rw)
+    print(coef(fit_v))
     S <- sqrt(coef(fit_v))
+    S <- matrix(S, nrow = 3, ncol = nk)
 
     return(list(A=A, S=S))
 }
 
 # EM algorithm
-em <- function(N, nk, df, tol=1e-6) {
+em <- function(N, nk, df, tol) {
 
     # Initialize variables
     round <- 1
@@ -137,7 +139,7 @@ em <- function(N, nk, df, tol=1e-6) {
 
     # Initialize parameters
     pk <- rep(1/nk, nk)
-    A <- matrix(0, nk, nk)
+    A <- matrix(5, nk, nk)
     S <- matrix(1, nk, nk)
 
     # Initialize variables for convergence and Q, H functions
@@ -158,7 +160,7 @@ em <- function(N, nk, df, tol=1e-6) {
 
         # Update probabilities of types
         pk <- colSums(results$omega) / N
-
+ 
         # Update variables for convergence and Q, H functions
         lik_new <- results$lik
         omega_new <- results$omega
