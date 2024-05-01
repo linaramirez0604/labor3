@@ -3,9 +3,13 @@
 # Lina Ramirez and Olivia Stiegman
 # 5/1/24
 ##################################
+#install.packages('readstata13')
+#install.packages('cowplot')
 
 # Clear environment
 rm(list=ls())
+setwd("/Users/linaramirez/Library/CloudStorage/Dropbox/phd/spring-2024/labor3/pset2")
+
 
 # Load packages
 library(gtools)
@@ -13,9 +17,11 @@ library(data.table)
 library(ggplot2)
 library(Matrix)
 library(reshape)
+library(ggplot2)
 library(readstata13)
-library(SparseM)
+library(cowplot)
 
+library(SparseM)
 # For testing EM algorithm
 model.mixture.new <-function(nk) {
   
@@ -61,6 +67,7 @@ plot <- ggplot(df_melt,aes(x=value,group=k,fill=factor(k))) + geom_density() + f
 print(plot)
 
 ########################################################################################
+#QUESTION 1 AND 2
 
 # Log of a normal pdf with arbitrary mean and variance
 lognormpdf <- function(Y,mu,sigma)  {
@@ -125,7 +132,7 @@ maximization <- function(N, nk, omega, Y1, Y2, Y3, A, S) {
     print(coef(fit_v))
     S <- sqrt(coef(fit_v))
     S <- matrix(S, nrow = 3, ncol = nk)
-
+    
     return(list(A=A, S=S))
 }
 
@@ -203,5 +210,119 @@ em <- function(N, nk, df, tol) {
 
 }
 
+em_results <- em(10000, 3, df, tol=1e-6)
+
+
+##### QUESTION 3: With simulated data ####
+
+# Plot the simulated data
+
+ggplot(df_melt,aes(x=value,group=k,fill=factor(k))) + geom_density() + facet_grid(~variable) + theme_bw()
+
+# Save the plot as PDF
+ggsave("./output/histograms.pdf")
+
+### Estimated vs. True means 
+
+
+# Extract the required columns from em_results$A and model$A
+As <- cbind(unlist(em_results$A), unlist(model$A))
+
+# Create a dataframe with Estimated and True values for each y variable
+df_As <- data.frame(
+  Estimated = c(As[, 1], As[, 2], As[, 3]),
+  True = c(As[, 4], As[, 5], As[, 6]),
+  y = rep(c('y1', 'y2', 'y3'), each = nrow(As) / 3)
+)
+
+# Create scatter plot using ggplot
+ggplot(df_As, aes(x = Estimated, y = True, color=y)) +
+  geom_point() +  # Add points for scatter plot
+  labs(title = "Estimated vs True",  # Set title
+       x = "Estimated",              # Set x-axis label
+       y = "True") +                 # Set y-axis label
+  geom_text(aes(label = "Mean"), x = Inf, y = Inf, vjust = -1) +  # Add label "Mean"
+  theme_minimal()                   # Set plot theme to minimal
+
+ggsave("./output/means.pdf")
+
+### Estimated vs. True Variances
+
+
+# Extract the required columns from em_results$S and model$S
+Ss <- cbind(unlist(em_results$S), unlist(model$S))
+
+# Create a dataframe with Estimated and True values for each y variable
+df_Ss <- data.frame(
+  Estimated = c(Ss[, 1], Ss[, 2], Ss[, 3]),
+  True = c(Ss[, 4], Ss[, 5], Ss[, 6]),
+  y = rep(c('y1', 'y2', 'y3'), each = nrow(As) / 3)
+)
+
+# Create scatter plot using ggplot
+ggplot(df_Ss, aes(x = Estimated, y = True, color=y)) +
+  geom_point() +  # Add points for scatter plot
+  labs(title = "Estimated vs True",  # Set title
+       x = "Estimated",              # Set x-axis label
+       y = "True") +                 # Set y-axis label
+  geom_text(aes(label = "Mean"), x = Inf, y = Inf, vjust = -1) +  # Add label "Mean"
+  theme_minimal()                   # Set plot theme to minimal
+
+ggsave("./output/variance.pdf")
+
+
+### Estimated vs. True Pks
+
+
+# Extract the required columns from em_results$S and model$S
+em_results[[1]] <- matrix(em_results[[1]], nrow = 1)
+Pks <- cbind(unlist(em_results$pk), unlist(model$pk))
+
+
+# Create a dataframe with Estimated and True values for each y variable
+df_Pks <- data.frame(
+  Estimated = c(Pks[, 1], Pks[, 2], Pks[, 3]),
+  True = c(Pks[, 4], Pks[, 5], Pks[, 6]),
+  y = rep(c('y1', 'y2', 'y3'), each = nrow(As) / 3)
+)
+
+# Create scatter plot using ggplot
+ggplot(df_Pks, aes(x = Estimated, y = True, color=y)) +
+  geom_point() +  # Add points for scatter plot
+  labs(title = "Estimated vs True",  # Set title
+       x = "Estimated",              # Set x-axis label
+       y = "True") +                 # Set y-axis label
+  geom_text(aes(label = "Mean"), x = Inf, y = Inf, vjust = -1) +  # Add label "Mean"
+  theme_minimal()                   # Set plot theme to minimal
+
+ggsave("./output/pk.pdf")
+
+
+#We need to report the values of the likelihood, the H function and the Q function but I don't know how :(
+
+
+##### QUESTION 4: Estimating on PSID Data #### 
+
+psid_df = data.table(read.dta13("./AER_2012_1549_data/output/data4estimation.dta"))
+
+#computing the wage residuals 
+
+fit = lm(log(log_y) ~ year + marit + state_st ,psid_df ,na.action=na.exclude)
+psid_df[, log_yr := residuals(fit)]
+
+# extract lags
+setkey(psid_df,person,year)
+psid_df[, log_yr_l1 := psid_df[J(person,year-2),log_yr]]
+psid_df[, log_yr_l2 := psid_df[J(person,year-4),log_yr]]
+
+# compute difference from start
+fdata = psid_df[!is.na(log_yr*log_yr_l1*log_yr_l2)][,list(y1=log_yr_l2,y2=log_yr_l1,y3=log_yr)] 
+
+K = sample.int(3,4941,TRUE,model$pk)
+K_df <- data.frame(k=K)
+
+fdata <- cbind(fdata, K_df)
+
+#Running the EM: 
 em_results <- em(10000, 3, df, tol=1e-6)
 
