@@ -8,7 +8,7 @@
 
 # Clear environment
 rm(list=ls())
-# setwd("/Users/linaramirez/Library/CloudStorage/Dropbox/phd/spring-2024/labor3/pset2")
+setwd("/Users/linaramirez/Library/CloudStorage/Dropbox/phd/spring-2024/labor3/pset2")
 # setwd("/Users/oliviastiegman/Documents/UChicago/2nd Year/Spring Quarter/Topics in Labor Markets/pset2")
 
 # Load packages
@@ -320,3 +320,13 @@ psid_em3_results <- em(4941, 3, fdata, tol = 1e-3)
 psid_em4_results <- em(4941, 4, fdata, tol = 1e-3)
 psid_em5_results <- em(4941, 5, fdata, tol = 1e-3)
 
+#Something in the code is breaking... when nk=5...
+
+#Question 5
+
+# extract lags
+setkey(data,person,year)
+data[, log_yr_l3 := data[J(person,year-2),log_yr]]
+
+# compute difference from start
+fdata = data[!is.na(log_yr*log_yr_l1*log_yr_l2)][,list(y1=log_yr_l3,y2=log_yr_l2,y3=log_yr_l1,y4=log_yr)]
